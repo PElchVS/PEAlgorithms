@@ -55,7 +55,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PERROR_MSG_ENABLE;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
     </ClCompile>
@@ -86,10 +86,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\pearray.h" />
+    <ClInclude Include="include\pebool.h" />
+    <ClInclude Include="include\peiterator.h" />
+    <ClInclude Include="include\perror.h" />
     <ClInclude Include="include\petypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pearray.c" />
+    <ClCompile Include="src\perror.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
