@@ -87,12 +87,15 @@
   <ItemGroup>
     <ClInclude Include="include\pearray.h" />
     <ClInclude Include="include\pebool.h" />
+    <ClInclude Include="include\peinout.h" />
     <ClInclude Include="include\peiterator.h" />
+    <ClInclude Include="include\pemem.h" />
     <ClInclude Include="include\perror.h" />
     <ClInclude Include="include\petypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pearray.c" />
+    <ClCompile Include="src\peiterator.c" />
     <ClCompile Include="src\perror.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,7 +1,7 @@
 #ifndef PE_ERROR_H_
 #define PE_ERROR_H_
 
-#include <stdio.h>
+#include "peinout.h"
 
 #include "petypes.h"
 
@@ -15,6 +15,9 @@ extern PERROR g_PErrorCode;
 	#define PERROR_MESSAGE(MSG)
 #endif
 
+#define PE_SUCCESS 0
+#define PE_FAILURE 1
+
 #define PERROR_NULL_PTR_DEREF	0x01
 #define PERROR_MEM_ALLOC_FAULT	0x02
 
@@ -24,6 +27,10 @@ extern PERROR g_PErrorCode;
 #define PERROR_ARRAY_INVALID_EL_SIZE	(PERROR_ARRAY | 0x03)
 #define PERROR_ARRAY_MERGE_DIFF_SIZE	(PERROR_ARRAY | 0x04)
 
+#define PERROR_ITERATOR			0x4000000000000000
+#define PERROR_ITERATOR_DIFF	(PERROR_ITERATOR | 0x01)
+
+
 #define PERROR_NULL_PTR_DEREF_MSG	"Null pointer dereferencing"
 #define PERROR_MEM_ALLOC_FAULT_MSG	"Memory allocation fault"
 
@@ -31,5 +38,7 @@ extern PERROR g_PErrorCode;
 #define PERROR_ARRAY_INVALID_SIZE_MSG		"Array invalid size"
 #define PERROR_ARRAY_INVALID_EL_SIZE_MSG	"Array invalid element size"
 #define PERROR_ARRAY_MERGE_DIFF_SIZE_MSG	"Merging arrays with different element type sizes"
+
+#define PERROR_ITERATOR_DIFF_MSG "Difference between different structure iterators"
 
 #endif

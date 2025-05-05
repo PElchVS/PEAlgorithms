@@ -1,7 +1,5 @@
-#include <stdlib.h>
-#include <string.h>
-
 #include "pearray.h"
+#include "pemem.h"
 
 PEARRAY* peArrayCreate(PEARRAY* arrPtr, PESIZE elementSize, PESIZE elementCount)
 {
@@ -97,6 +95,18 @@ PEPTRVOID peArraySafeAt(PEARRAY* arrPtr, PESIZE index)
 	return peArrayAt(arrPtr, index);
 }
 
+PEPTRVOID peArrayAtIterator(PEARRAYITERATOR* itPtr)
+{
+	if (!itPtr)
+	{
+		g_PErrorCode = PERROR_NULL_PTR_DEREF;
+		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
+		return PENULL;
+	}
+
+	return itPtr->iterator;
+}
+
 PEPTRVOID peArrayFront(PEARRAY* arrPtr)
 {
 	if (!arrPtr)
@@ -129,6 +139,118 @@ PEPTRVOID peArrayBack(PEARRAY* arrPtr)
 	}
 
 	return (PEBYTE*)arrPtr->buffer + (arrPtr->elementCount - 1) * arrPtr->elementSize;
+}
+
+PEARRAYITERATOR* peArrayBegin(PEARRAY* arrPtr, PEARRAYITERATOR* itPtr)
+{
+	if (!arrPtr || !itPtr)
+	{
+		g_PErrorCode = PERROR_NULL_PTR_DEREF;
+		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
+		return PENULL;
+	}
+	itPtr->array = arrPtr;
+	itPtr->iterator = arrPtr->buffer;
+	itPtr->reversed = PEFALSE;
+	return itPtr;
+}
+
+PEARRAYITERATOR* peArrayEnd(PEARRAY* arrPtr, PEARRAYITERATOR* itPtr)
+{
+	if (!arrPtr || !itPtr)
+	{
+		g_PErrorCode = PERROR_NULL_PTR_DEREF;
+		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
+		return PENULL;
+	}
+	itPtr->array = arrPtr;
+	itPtr->iterator = ((PEBYTE*)arrPtr->buffer) + arrPtr->elementCount * arrPtr->elementSize;
+	itPtr->reversed = PEFALSE;
+	return itPtr;
+}
+
+PEARRAYITERATOR* peArrayRevBegin(PEARRAY* arrPtr, PEARRAYITERATOR* itPtr)
+{
+	if (!arrPtr || !itPtr)
+	{
+		g_PErrorCode = PERROR_NULL_PTR_DEREF;
+		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
+		return PENULL;
+	}
+	itPtr->array = arrPtr;
+	itPtr->iterator = ((PEBYTE*)arrPtr->buffer) + (arrPtr->elementCount - 1) * arrPtr->elementSize;
+	itPtr->reversed = PETRUE;
+	return itPtr;
+}
+
+PEARRAYITERATOR* peArrayRevEnd(PEARRAY* arrPtr, PEARRAYITERATOR* itPtr)
+{
+	if (!arrPtr || !itPtr)
+	{
+		g_PErrorCode = PERROR_NULL_PTR_DEREF;
+		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
+		return PENULL;
+	}
+	itPtr->array = arrPtr;
+	itPtr->iterator = (PEBYTE*)arrPtr->buffer - arrPtr->elementSize;
+	itPtr->reversed = PEFALSE;
+	return itPtr;
+}
+
+PEARRAYITERATOR* peArrayIteratorInc(PEARRAYITERATOR* itPtr, PELLONG step)
+{
+	if (!itPtr)
+	{
+		g_PErrorCode = PERROR_NULL_PTR_DEREF;
+		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
+		return PENULL;
+	}
+
+	PEINT dir = itPtr->reversed ? -1 : 1;
+
+	(PEBYTE*)itPtr->iterator += dir * step * itPtr->array->elementSize;
+
+	return itPtr;
+}
+
+PEARRAYITERATOR* peArrayIteratorDec(PEARRAYITERATOR* itPtr, PELLONG step)
+{
+	if (!itPtr)
+	{
+		g_PErrorCode = PERROR_NULL_PTR_DEREF;
+		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
+		return PENULL;
+	}
+
+	PEINT dir = itPtr->reversed ? -1 : 1;
+
+	(PEBYTE*)itPtr->iterator -= dir * step * itPtr->array->elementSize;
+
+	return itPtr;
+}
+
+PELLONG peArrayIteratorDiff(PEARRAYITERATOR* firstItPtr, PEARRAYITERATOR* secondItPtr)
+{
+	if (!firstItPtr || !secondItPtr)
+	{
+		g_PErrorCode = PERROR_NULL_PTR_DEREF;
+		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
+		return PENULL;
+	}
+
+	if (firstItPtr->array != secondItPtr->array)
+	{
+		g_PErrorCode = (PERROR_ARRAY | PERROR_ITERATOR_DIFF);
+		PERROR_MESSAGE(PERROR_ITERATOR_DIFF_MSG);
+		return PENULL;
+	}
+
+	if (firstItPtr->reversed)
+	{
+		return ((PEBYTE*)firstItPtr->iterator - (PEBYTE*)secondItPtr->iterator) / (PELLONG)firstItPtr->array->elementSize;
+	}
+
+	return ((PEBYTE*)secondItPtr->iterator - (PEBYTE*)firstItPtr->iterator) / (PELLONG)firstItPtr->array->elementSize;
 }
 
 PEBOOL peArrayIsFull(PEARRAY* arrPtr)
@@ -217,6 +339,19 @@ PEARRAY* peArraySafeInsert(PEARRAY* arrPtr, PESIZE index, PEPTRVOID value)
 	return peArrayInsert(arrPtr, index, value);
 }
 
+PEARRAY* peArrayInsertIterator(PEARRAYITERATOR* itPtr, PEPTRVOID value)
+{
+	if(!itPtr)
+	{
+		g_PErrorCode = PERROR_NULL_PTR_DEREF;
+		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
+		return PENULL;
+	}
+	memcpy(itPtr->iterator, value, itPtr->array->elementSize);
+
+	return itPtr->array;
+}
+
 PEARRAY* peArrayErase(PEARRAY* arrPtr, PESIZE index)
 {
 	if (!arrPtr)
@@ -251,6 +386,24 @@ PEARRAY* peArraySafeErase(PEARRAY* arrPtr, PESIZE index)
 	}
 	
 	return peArrayErase(arrPtr, index);
+}
+
+PEARRAY* peArrayEraseIterator(PEARRAYITERATOR* itPtr)
+{
+	if (!itPtr)
+	{
+		g_PErrorCode = PERROR_NULL_PTR_DEREF;
+		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
+		return PENULL;
+	}
+	PEARRAYITERATOR itEnd;
+	peArrayEnd(itPtr->array, &itEnd);
+	PELLONG diff = peArrayIteratorDiff(itPtr, &itEnd) - 1;
+
+	memmove(itPtr->iterator, (PEBYTE*)itPtr->iterator + itPtr->array->elementSize, diff * itPtr->array->elementSize);	
+	itPtr->array->elementCount--;
+	
+	return itPtr->array;
 }
 
 PEARRAY* peArrayPushBack(PEARRAY* arrPtr, PEPTRVOID value)
@@ -289,9 +442,63 @@ PEARRAY* peArrayPopBack(PEARRAY* arrPtr)
 	return arrPtr;
 }
 
+PEINT peSwap(PEPTRVOID firstPtr, PEPTRVOID secondPtr, PESIZE size)
+{
+	if (!firstPtr || !secondPtr)
+	{
+		g_PErrorCode = PERROR_NULL_PTR_DEREF;
+		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
+		return PE_FAILURE;
+	}
+
+	PEBYTE* tmp = (PEBYTE*)malloc(size);
+
+	if (!tmp)
+	{
+		g_PErrorCode = PERROR_MEM_ALLOC_FAULT;
+		PERROR_MESSAGE(PERROR_MEM_ALLOC_FAULT_MSG);
+		return PE_FAILURE;
+	}
+
+	memcpy(tmp, firstPtr, size);
+	memcpy(firstPtr, secondPtr, size);
+	memcpy(secondPtr, tmp, size);
+	free(tmp);
+
+	return PE_SUCCESS;
+}
+
+PEARRAY* peArrayReverse(PEARRAY* arrPtr, PEARRAYITERATOR* begin, PEARRAYITERATOR* end)
+{
+	if (!arrPtr || !begin || !end)
+	{
+		g_PErrorCode = PERROR_NULL_PTR_DEREF;
+		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
+		return PENULL;
+	}
+
+	if (arrPtr != begin->array || arrPtr != end->array)
+	{
+		return PENULL;
+	}
+
+	PEARRAYITERATOR i = *begin;
+	PEARRAYITERATOR j = *end;
+
+	peArrayIteratorDec(&j, 1);
+	while (i.iterator < j.iterator)
+	{
+		peSwap(i.iterator, j.iterator, arrPtr->elementSize);
+		peArrayIteratorInc(&i, 1);
+		peArrayIteratorDec(&j, 1);
+	}	
+
+	return arrPtr;
+}
+
 PEARRAY* peArrayMerge(PEARRAY* arrPtrDest, PEARRAY* arrPtrSrc)
 {
-	if ((!arrPtrDest) || (!arrPtrSrc))
+	if (!arrPtrDest || !arrPtrSrc)
 	{
 		g_PErrorCode = PERROR_NULL_PTR_DEREF;
 		PERROR_MESSAGE(PERROR_NULL_PTR_DEREF_MSG);
